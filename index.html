@@ -24,6 +24,7 @@ button:hover{background:var(--hover);border-color:var(--blue)}
 button:focus-visible{outline:3px solid var(--text);outline-offset:2px}
 .main-button{display:block;width:100%;background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
 .main-button:hover{background:#1a5ea9}
+button:disabled{opacity:.45;cursor:default}
 .link{border:0;background:none;color:var(--soft);min-height:44px;padding:8px 0;margin-top:16px;text-decoration:underline}
 .link:hover{background:none;color:var(--text)}
 #options{display:grid;gap:10px}
@@ -42,7 +43,6 @@ h2{font-size:1.25rem;margin-bottom:8px}
 #top li{padding:14px 0;border-top:2px solid var(--line)}
 #top p+p{margin-top:4px}
 #options.task .main-button{margin-top:8px}
-#options .link{margin-top:0;text-align:center}
 #options .main-button{text-align:center}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 #options .grid button{text-align:center;min-height:76px;padding:6px;font-size:2rem;overflow-wrap:anywhere}
@@ -240,24 +240,23 @@ const WHY = {
 /* ---------- Small visual tasks: 3 of 15 per round ----------
    [id, "task", question, outcomes, weight, kind, settings]
    outcomes work like answers above. The weight is low: taste and hand skill say little about age. */
-const SKIP = ["I skipped this"];
-const pick = (id, text, items, view) => [id, "task", text, [...items.map(i => i.slice(1)), SKIP], .5, "pick", {view, icons: items.map(i => i[0])}];
+const pick = (id, text, items, view) => [id, "task", text, items.map(i => i.slice(1)), .5, "pick", {view, icons: items.map(i => i[0])}];
 const TASKS = [
  pick(201,"Pick a color.",[["#e5484d","Red",20,18],["#f5871f","Orange",14,14],["#ffd02f","Yellow",11,13],["#3fa45b","Green",45,20],["#2f7fd8","Blue",40,22],["#8e5bd6","Purple",18,13],["#f06fae","Pink",12,13],["#222222","Black",23,10]],"color"),
- [202,"task","Move the hands so the clock shows an afternoon time.",[["3 o'clock",30,25],["a time with full hours",13,12],["a time with half or quarter hours",45,20],["an exact time with odd minutes",32,16],["a time outside the afternoon",10,9],SKIP],.5,"clock"],
- [203,"task","Make the text a size that is nice to read.",[["small text",21,10],["normal text",32,16],["large text",54,17],["very large text",66,15],SKIP],.7,"slider",{min:12,max:34,start:18,low:"small",high:"big",preview:"text",cuts:[16,20,26]}],
+ [202,"task","Move the hands so the clock shows an afternoon time.",[["3 o'clock",30,25],["a time with full hours",13,12],["a time with half or quarter hours",45,20],["an exact time with odd minutes",32,16],["a time outside the afternoon",10,9]],.5,"clock"],
+ [203,"task","Make the text a size that is nice to read.",[["small text",21,10],["normal text",32,16],["large text",54,17],["very large text",66,15]],.7,"slider",{min:12,max:34,start:18,low:"small",high:"big",preview:"text",cuts:[16,20,26]}],
  pick(204,"Which picture means “call someone”?",[["☎️","The old telephone",46,22],["📞","The phone handle",40,20],["📱","The smartphone",13,9],["📹","The video camera",12,10]],"icon"),
  pick(205,"Which picture means “save”?",[["💾","The floppy disk",42,17],["📥","The box with an arrow",30,18],["☁️","The cloud",16,10],["❤️","The heart",14,11],["🔖","The bookmark",24,12]],"icon"),
  pick(206,"Choose a sticker.",[["🦖","Dinosaur",9,10],["🦄","Unicorn",11,12],["🐱","Cat",24,18],["🌻","Sunflower",55,20],["💀","Skull",18,8],["⭐","Star",35,28]],"icon"),
- [207,"task","Color the flower. Tap a petal to change it.",[["a flower in one color",45,22],["a flower in two colors",35,18],["a flower in many colors",11,12],["an empty flower",25,20],SKIP],.5,"flower"],
- [208,"task","Tap the big button as often as you like.",[["1 or 2 taps",45,20],["3 to 9 taps",32,20],["10 to 24 taps",16,11],["25 taps or more",10,9],SKIP],.5,"tap"],
+ [207,"task","Color the flower. Tap a petal to change it.",[["a flower in one color",45,22],["a flower in two colors",35,18],["a flower in many colors",11,12],["an empty flower",25,20]],.5,"flower"],
+ [208,"task","Tap the big button as often as you like.",[["1 or 2 taps",45,20],["3 to 9 taps",32,20],["10 to 24 taps",16,11],["25 taps or more",10,9]],.5,"tap"],
  pick(209,"Pick a shape.",[["●","Circle",35,25],["■","Square",45,20],["▲","Triangle",25,18],["★","Star",11,12],["♥","Heart",18,16],["🌀","Spiral",22,14]],"shape"),
  pick(210,"Pick a number.",[["1","1",9,10],["3","3",25,20],["7","7",32,18],["8","8",45,25],["13","13",20,9],["67","67",13,3],["100","100",8,8],["42","42",35,10]],"icon"),
  pick(211,"Where should the sun go in your picture?",[["↖","Top left corner",14,14],["⬆","Top middle",32,22],["↗","Top right corner",15,15],["⬅","Low on the left",45,22],["⏺","In the middle",20,18],["➡","Low on the right",45,22]],"sky"),
  pick(212,"Where would you sit in a café?",[["🪟","By the window",40,25],["🧱","In a quiet corner",30,18],["🚪","Near the door",58,20],["🛋️","On the soft sofa",20,14],["🎠","Next to the play area",8,8]],"icon"),
  pick(213,"Which sky do you like most?",[["linear-gradient(#6fc3ff,#dff3ff)","Sunny blue sky",12,15],["linear-gradient(#5b4b9a,#ff9a62)","Evening sunset",36,20],["linear-gradient(#0b1030,#3a3f78)","Night sky",20,12],["linear-gradient(#7d8b99,#c5ced6)","Grey rain sky",38,20],["linear-gradient(#bfe3ff,#ffe3b0)","Early morning",58,18]],"fill"),
  pick(214,"How should your name look?",[["Sam","Plain letters",35,22],["𝒮𝒶𝓂","Curly writing",55,22],["SAM","BIG LETTERS",11,13],["sam","small letters",20,9],["✨sam✨","With sparkles",15,10]],"icon"),
- [215,"task","Move the slider to the face that shows your usual morning.",[["a very tired morning",20,10],["a slow morning",32,18],["an okay morning",45,22],["a very happy morning",55,28],SKIP],.5,"slider",{min:0,max:100,start:50,low:"tired",high:"happy",preview:"face",cuts:[25,50,75]}]
+ [215,"task","Move the slider to the face that shows your usual morning.",[["a very tired morning",20,10],["a slow morning",32,18],["an okay morning",45,22],["a very happy morning",55,28]],.5,"slider",{min:0,max:100,start:50,low:"tired",high:"happy",preview:"face",cuts:[25,50,75]}]
 ];
 Object.assign(WHY, {
  201:"Favorite colors often change as we grow up.",
@@ -379,13 +378,12 @@ function renderTask(task, box, done){
   if (kind === "tap"){
     let taps = 0;
     const big = el("button", {type:"button", className:"tap", textContent:"Tap"});
-    big.addEventListener("click", () => { taps++; big.textContent = taps; });
-    box.append(big, finishButton(() => taps === 0 ? 4 : taps <= 2 ? 0 : taps <= 9 ? 1 : taps <= 24 ? 2 : 3));
+    const ready = finishButton(() => taps <= 2 ? 0 : taps <= 9 ? 1 : taps <= 24 ? 2 : 3);
+    ready.disabled = true;
+    big.addEventListener("click", () => { taps++; big.textContent = taps; ready.disabled = false; });
+    box.append(big, ready);
   }
 
-  const skip = el("button", {type:"button", className:"link", textContent:"Skip this"});
-  skip.addEventListener("click", () => done(outcomes.length - 1, skip));
-  box.append(skip);
 }
 
 Object.assign(WHY, {
