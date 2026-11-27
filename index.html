@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Guess my age</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f7fd8'/%3E%3Ctext x='16' y='23' font-size='20' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='white'%3E?%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#dcefff; --card:#fff; --text:#17324d; --soft:#527090;
+  --line:#bcd9f2; --hover:#eef7ff; --blue:#2070c9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:clip}
+body{background:var(--bg);color:var(--text);font:1.125rem/1.5 "Nunito","Cantarell","Noto Sans",system-ui,sans-serif;min-height:100vh;min-height:100dvh;display:grid;grid-template-columns:minmax(0,1fr);align-content:center;justify-items:center;gap:16px;padding:16px}
+main{width:100%;max-width:520px;background:var(--card);border-radius:20px;padding:32px 24px}
+h1{font-size:1.75rem;line-height:1.25;overflow-wrap:anywhere;margin-bottom:20px}
+h1:focus{outline:none}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer;min-height:52px;padding:12px 18px;border-radius:12px;border:2px solid var(--line);background:var(--card)}
+button:hover{background:var(--hover);border-color:var(--blue)}
+button:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+.main-button{display:block;width:100%;background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+.main-button:hover{background:#1a5ea9}
+.link{border:0;background:none;color:var(--soft);min-height:44px;padding:8px 0;margin-top:16px;text-decoration:underline}
+.link:hover{background:none;color:var(--text)}
+#options{display:grid;gap:10px}
+#options button{text-align:left}
+#options button[aria-pressed="true"]{background:var(--hover);border-color:var(--blue)}
+progress{display:block;width:100%;height:10px;border:0;border-radius:5px;overflow:hidden;background:var(--line);appearance:none;margin-bottom:8px}
+progress::-webkit-progress-bar{background:var(--line)}
+progress::-webkit-progress-value{background:var(--blue)}
+progress::-moz-progress-bar{background:var(--blue)}
+.small{font-size:.9375rem;color:var(--soft)}
+#count{margin-bottom:20px}
+#age{font-size:6rem;font-weight:800;line-height:1.1;color:var(--blue);text-align:center}
+#range{text-align:center;margin-bottom:28px}
+h2{font-size:1.25rem;margin-bottom:8px}
+#top{list-style:none;margin-bottom:24px}
+#top li{padding:14px 0;border-top:2px solid var(--line)}
+#top p+p{margin-top:4px}
+#copy{display:block;width:100%;margin-top:10px}
+footer{max-width:520px;text-align:center}
+</style>
+</head>
+<body>
+<main>
+  <section id="intro">
+    <h1>Can we guess your age?</h1>
+    <p style="margin-bottom:24px">Answer 10 short questions.</p>
+    <button class="main-button" id="start">Start</button>
+  </section>
+
+  <section id="quiz" hidden>
+    <progress id="progress" max="10" value="0" aria-label="Questions done"></progress>
+    <p class="small" id="count"></p>
+    <h1 id="qtext" tabindex="-1"></h1>
+    <div id="options"></div>
+    <button class="link" id="back">Back</button>
+  </section>
+
+  <section id="result" hidden>
+    <h1 id="rtitle" tabindex="-1" style="text-align:center">I think you are</h1>
+    <p id="age"></p>
+    <p id="range"></p>
+    <div id="reasons">
+      <h2>What helped us most</h2>
+      <ol id="top"></ol>
+    </div>
+    <button class="main-button" id="again">Play again</button>
+    <button id="copy">Copy result</button>
+    <p class="small" id="copied" role="status"></p>
+  </section>
+</main>
+<footer class="small">Just a game, not a real age test. Your answers are not sent or saved.</footer>
+
+<script>
+"use strict";
+/* [id, group, question, answers]
+   answer: [text, typicalAge, spread]  or  [text] if it says nothing about age.
+   The numbers are hand-set guesses, not measured data. */
+const BANK = [
+ [101,"words","You hear the word “tablet”. What do you think of first?",[["A computer screen",14,13],["A medicine pill",56,16],["A chocolate bar",36,18],["A flat stone",25,20],["Something else"]]],
+ [102,"words","You hear “cloud”. What do you think of first?",[["A shape in the sky",52,20],["A place for your files",30,12],["A soft cloud with a face",13,12],["Rain is coming",50,18],["Something else"]]],
+ [103,"words","You hear “stream”. What do you think of?",[["Water and stones",55,17],["Shows or music on the internet",34,12],["A person playing live",17,9],["Something else"]]],
+ [104,"words","You hear “mouse”. What do you think of first?",[["An animal in a story",12,13],["The mouse for a computer",36,15],["An animal in the kitchen",56,17],["Something else"]]],
+ [105,"words","“To feed” means…",[["to give food to an animal",50,22],["to scroll through posts",20,11],["to follow or manage news",37,9],["something else"]]],
+ [106,"words","You hear “skin”. What do you think of first?",[["Taking care of my skin",40,17],["A new look for a game character",14,8],["The outside of a fruit",55,17],["Something else"]]],
+ [107,"words","You hear “drop”. What do you think of first?",[["A drop of water",48,22],["New things coming out",19,9],["To let something fall",33,18],["The best part of a song",28,8],["Something else"]]],
+ [108,"words","You hear “handle”. What do you think of?",[["A door",46,22],["A user name",17,10],["Dealing with a problem",40,14],["Something else"]]],
+ [109,"words","Think of a wallet. What is in it?",[["Paper money and coins",54,20],["Cards and receipts",38,13],["My wallet is in my phone",23,10],["Little treasures",11,9],["Something else"]]],
+ [110,"words","Something is really good. What do you say?",[["Lovely",58,17],["Awesome",36,13],["Fire",18,7],["Nice",30,25],["Something else"]]],
+ [111,"words","“A long phone call.” How long is that?",[["10 minutes",19,13],["30 minutes",35,18],["More than 1 hour",48,22],["Every call is long",25,9]]],
+ [112,"chat","Someone answers you with only 👍. How is that?",[["Good, all done",50,18],["A bit cold",21,9],["I do that too",38,17],["Hard to say",28,20]]],
+ [113,"chat","A message says “Okay.” with a dot at the end.",[["That is just correct",52,18],["It sounds a bit angry",21,9],["I do not see the dot",38,22],["It only means “okay”"]]],
+ [114,"chat","You write “haha”. What is your face doing?",[["I am really laughing",47,20],["My face does not move",22,10],["I smile a little",34,20],["I do not write that"]]],
+ [115,"chat","How do your messages usually look?",[["Full sentences with “Hello”",57,17],["One long text",38,14],["Many short ones",19,10],["Mostly pictures or stickers",11,9],["Very different each time"]]],
+ [116,"chat","Someone you like writes only “…” to you.",[["They are just waiting",56,16],["Something is wrong",26,11],["They are being funny",17,13],["Nothing special"]]],
+ [117,"chat","A number you do not know is calling.",[["I answer. It may be important",55,17],["I wait, then search the number",28,11],["I give the phone to someone",10,6],["My phone blocks it or takes a message",38,18]]],
+ [118,"chat","You want to tell a friend something small. You…",[["call them",57,17],["send a text",36,15],["send a voice message",21,14],["send a picture",17,11],["wait until I see them"]]],
+ [119,"chat","How do you usually type on a phone?",[["With one finger",62,15],["With one thumb",40,16],["With two thumbs, fast",23,11],["I speak and it writes",52,24],["Another way"]]],
+ [120,"chat","Your phone sound is usually…",[["very loud",60,16],["only buzzing",40,15],["silent for years",24,9],["the same as when I got it",50,24]]],
+ [121,"chat","Which laughing sign would you send?",[["😂",42,14],["💀",18,7],["🤣",52,14],["😹 or a cute sticker",13,11],["None of these"]]],
+ [122,"taste","You have one free hour. What sounds best?",[["Do small things at home or outside",55,18],["Lie down and rest",33,14],["Make or build something",13,13],["Meet or talk with someone",24,14],["Do my favorite thing"]]],
+ [123,"taste","Which drink is a treat for you?",[["Good coffee or tea",50,18],["A cold, sweet drink with syrup",19,10],["Juice or hot chocolate",10,9],["Just water"]]],
+ [124,"taste","Which present would you like?",[["Really good socks",45,18],["Money",18,10],["A box to open, big or small",10,9],["A free day with no plans",41,12],["No present, please"]]],
+ [125,"taste","It will rain all day. What do you think?",[["Good for the plants",58,16],["A cozy day inside",24,14],["Puddles!",9,8],["Going out will be annoying",37,14],["I do not mind"]]],
+ [126,"taste","Which smell is the nicest?",[["Cut grass",40,22],["Clean clothes",36,16],["Vanilla or candy",15,11],["Soup cooking",55,20],["I do not like strong smells"]]],
+ [127,"taste","Which kind words make you happiest?",[["“We can always count on you”",47,14],["“You are funny”",19,13],["“You look healthy”",60,16],["“Wow, you made that?”",11,11],["“You know so much”",25,20]]],
+ [128,"taste","Which seat on a bus is best?",[["At the front, near the door",62,16],["At the back, by the window",17,11],["On the side, with room for my legs",42,15],["Always the same seat"]]],
+ [129,"taste","Which photo would you like to take?",[["A plant that has flowers now",58,16],["My food before I eat it",29,11],["Me making a silly face",14,9],["An animal I met",30,28],["I do not take photos"]]],
+ [130,"taste","You are in a shop and need a bag.",[["I brought my own",52,18],["I carry it all in my arms",19,12],["I buy a new one again",31,12],["Someone else carries it",10,8]]],
+ [131,"taste","Which evening out sounds nicest?",[["A quiet dinner where we can talk",52,17],["A loud place with many people",23,9],["A movie, arcade or play park",12,9],["Going home early",45,26],["I would stay home"]]],
+ [132,"taste","Which weekend job do you secretly like?",[["Going to a garden or tool shop",55,16],["A big food shopping trip with a list",38,13],["Going along and choosing one treat",10,8],["None of them"]]],
+ [133,"taste","What would you put on your wall?",[["Family photos",57,18],["Posters of things I love",19,12],["Fairy lights or glow stars",13,10],["A calendar",55,22],["Nothing"]]],
+ [134,"habits","What wakes you up?",[["I wake up early by myself",64,15],["Many alarms",23,10],["One alarm",38,18],["A person",9,7],["It changes"]]],
+ [135,"habits","You must remember something. What do you do?",[["Write a list or use a calendar",57,18],["Set a reminder on my phone",33,14],["Just remember it",17,16],["Write on my hand",14,8],["Someone reminds me",10,9]]],
+ [136,"habits","Midnight is…",[["very late",55,24],["about bedtime",32,13],["when the fun starts",20,7],["long after I fall asleep",10,8],["different every day"]]],
+ [137,"habits","You get a new thing with a manual.",[["I read it first",55,22],["I just try it",17,13],["I watch someone show it",26,14],["I read it only if I am stuck",36,16]]],
+ [138,"habits","“10 years ago” feels like…",[["last week",54,17],["quite long ago",31,10],["another life",19,8],["I was very small or not born",12,5],["Time feels strange to me"]]],
+ [139,"habits","How fast does one year go by?",[["Much too fast",52,18],["Just right",25,16],["Very slowly. Birthdays take forever",9,8],["It depends on the year"]]],
+ [140,"habits","Something hurts after sleeping. You think:",[["“Oh, that again”",58,17],["“I slept in a bad way”",31,13],["Nothing ever hurts",14,10],["I always feel every little thing"]]],
+ [141,"habits","What can you find fast at home right now?",[["Batteries and a flashlight",54,18],["A phone charger, or many",27,14],["Crayons or markers",12,12],["Pain pills in my own bag",36,12],["None of these"]]],
+ [142,"habits","Do you make a noise when you sit down?",[["Yes, a small “oof”",56,16],["Sometimes, lately",39,10],["No, I just drop down",16,11],["I make noises for other reasons"]]],
+ [143,"habits","Where are your passwords?",[["In a small book",64,15],["In my head, the same ones",28,13],["My device saves them",36,18],["Someone else set them up",11,9],["Another way"]]],
+ [144,"habits","You see a low wall. What do you want to do?",[["Walk on top of it",12,11],["Sit on it",45,22],["Lean on it",60,18],["Nothing"]]],
+ [145,"habits","Food is one day older than the date on it.",[["I smell it, then decide",46,20],["I throw it away",20,14],["I ask someone",11,8],["I only eat food I know well"]]],
+ [146,"numbers","A person is “old” from about…",[["25",8,5],["40",18,8],["60",34,14],["75",58,18],["Age is not a number"]]],
+ [147,"numbers","What is “a lot of money” for an adult?",[["The price of a new game",10,6],["One month of rent",23,10],["The price of a car",38,15],["A new roof for a house",55,17],["I do not think about amounts"]]],
+ [148,"numbers","“Back in the day” means about…",[["a few years ago",13,9],["15 years ago",30,10],["30 years ago or more",52,18],["before I was born",19,14],["I do not know"]]],
+ [149,"numbers","How many people do you want at your birthday?",[["My whole class or group",10,8],["A few friends",23,12],["Close family",54,20],["Nobody or one person"]]],
+ [150,"numbers","How long can a package take?",[["It should come tomorrow",24,14],["A few days",38,18],["One or two weeks is fine",57,18],["It always feels like forever",10,9]]],
+ [151,"numbers","A 10 minute walk is…",[["nothing",34,24],["nice, I like it",52,18],["a bit hard",19,14],["different from day to day"]]],
+ [152,"people","Something breaks. Who helps?",[["Nobody, I try myself",46,17],["A parent or helper",13,9],["A video",25,12],["A repair person",60,17],["A friend who knows how"]]],
+ [153,"people","A neighbor you do not know well waves.",[["I stop and talk",62,15],["I wave and walk on",35,17],["I check if they mean me",18,10],["I do not like to wave"]]],
+ [154,"people","Which question is the worst?",[["“What do you want to be?”",15,6],["“So what do you do now?”",25,8],["“Can you help me with my phone?”",38,13],["“Do you remember my name?”",59,17],["Any question I did not expect"]]],
+ [155,"people","Children are playing loudly near you.",[["I want to play too",10,9],["I put on headphones",23,14],["I smile and think of old times",58,17],["I wonder whose children they are",40,12],["Noise is always hard for me"]]],
+ [156,"people","Who helps you choose a movie?",[["A friend",27,22],["A movie review",50,18],["A person who makes videos",15,8],["My child or a younger family member",62,12],["I choose alone"]]]
+];
+
+/* One reason per question, shown with the result. */
+const WHY = {
+ "101": "The first meaning of a word often comes from what you use most.",
+ "102": "“Cloud” got a new computer meaning not so long ago.",
+ "103": "“Stream” now means different things to different age groups.",
+ "104": "Some people meet the animal first, others the computer part.",
+ "105": "“Feed” has an old meaning and a newer internet meaning.",
+ "106": "Games gave the word “skin” a new meaning.",
+ "107": "Online shops and music gave “drop” new meanings.",
+ "108": "User names made “handle” mean something new for some people.",
+ "109": "How people pay has changed a lot over time.",
+ "110": "Favorite praise words change with every generation.",
+ "111": "How long a call feels depends on how often you make calls.",
+ "112": "The same emoji can feel friendly or cold, often depending on age.",
+ "113": "Many younger people read a dot as a serious tone.",
+ "114": "How people write laughter online differs between age groups.",
+ "115": "Message style often comes from how you first learned to write messages.",
+ "116": "Three dots are read very differently by different age groups.",
+ "117": "Habits with unknown callers have changed over the years.",
+ "118": "Calling, texting and voice messages are popular at different ages.",
+ "119": "Typing style often shows when you got your first phone.",
+ "120": "Phone sound settings often differ with age.",
+ "121": "Laughing signs go in and out of fashion quickly.",
+ "122": "What we do with free time often changes during life.",
+ "123": "Taste in drinks often changes as we grow up.",
+ "124": "Wishes for presents often change during life.",
+ "125": "A rainy day means different things at different times of life.",
+ "126": "Nice smells are often tied to what our days are like.",
+ "127": "The praise we like most often changes during life.",
+ "128": "Needs and favorite places on a bus often change with age.",
+ "129": "What we like to photograph often changes during life.",
+ "130": "Planning ahead for shopping often grows with practice.",
+ "131": "Ideas of a fun evening often change with age.",
+ "132": "Weekend jobs feel different when you are the one in charge.",
+ "133": "Home decoration often follows the stage of life.",
+ "134": "Sleep and morning habits often change with age.",
+ "135": "Memory tools depend on school, work and daily duties.",
+ "136": "Bedtime often moves during life.",
+ "137": "How people deal with manuals often differs with age.",
+ "138": "Ten years is a bigger part of a short life than of a long one.",
+ "139": "Many people feel that years get faster as they get older.",
+ "140": "Small aches often become more common with age.",
+ "141": "What is close at hand shows a bit about daily life.",
+ "142": "Getting up and down often feels different over the years.",
+ "143": "The way people keep passwords often differs with age.",
+ "144": "The urge to climb is often strongest in younger years.",
+ "145": "How people judge old food often comes from experience.",
+ "146": "The age that sounds “old” usually moves up as we get older.",
+ "147": "What counts as much money depends on what you pay for.",
+ "148": "How far back you look depends on how much you remember.",
+ "149": "The ideal birthday group often changes with age.",
+ "150": "Patience for waiting often depends on what you grew up with.",
+ "151": "How a short walk feels can change during life.",
+ "152": "Who we ask for help often changes as we grow.",
+ "153": "Small talk with neighbors often becomes more common with age.",
+ "154": "People of different ages get different questions again and again.",
+ "155": "How we react to playing children often depends on our stage of life.",
+ "156": "Whose advice we trust often changes with age."
+};
+
+/* ---------- Guessing: Bayesian estimate over ages 7..80 ---------- */
+const AGES = Array.from({length:74}, (_,i) => i + 7);
+const PER_ROUND = 10;
+
+const affinity = (opt, age) => {
+  if (opt.length === 1) return 0.3;
+  // The oldest answers stay open upwards.
+  const distance = opt[1] >= 46 && age > opt[1] ? 0 : (age - opt[1]) / opt[2];
+  return 0.04 + Math.exp(-0.5 * distance ** 2);
+};
+const likelihood = (q, i, age) => affinity(q[3][i], age) / q[3].reduce((s, o) => s + affinity(o, age), 0);
+const prior = a => Math.exp(-0.5 * ((a - 32) / 26) ** 2);
+
+function estimate(picks){
+  let p = AGES.map(prior);
+  for (const {q, i} of picks){
+    if (q[3][i].length > 1) p = p.map((v, k) => v * likelihood(q, i, AGES[k]));
+  }
+  const sum = p.reduce((a, b) => a + b, 0);
+  const quantile = t => { let c = 0; for (let k = 0; k < p.length; k++){ c += p[k] / sum; if (c >= t) return AGES[k]; } return AGES.at(-1); };
+  const mean = p.reduce((s, v, k) => s + v * AGES[k], 0) / sum;
+  return { mean, age: quantile(.5), low: quantile(.15), high: quantile(.85) };
+}
+
+/* ---------- New questions every round ---------- */
+const store = {
+  get(){ try { const v = JSON.parse(localStorage.getItem("agequiz.seen")); return Array.isArray(v) ? v.filter(Number.isInteger) : []; } catch { return []; } },
+  set(v){ try { localStorage.setItem("agequiz.seen", JSON.stringify(v)); } catch { /* private mode */ } }
+};
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+function drawRound(){
+  let seen = new Set(store.get());
+  let fresh = BANK.filter(q => !seen.has(q[0]));
+  let picked = [];
+  if (fresh.length < PER_ROUND){ picked = fresh; seen = new Set(fresh.map(q => q[0])); fresh = BANK.filter(q => !seen.has(q[0])); }
+  const groups = {};
+  for (const q of shuffle(fresh)) (groups[q[1]] ??= []).push(q);
+  const names = shuffle(Object.keys(groups));
+  while (picked.length < PER_ROUND){
+    for (const n of names){
+      const q = picked.length < PER_ROUND && groups[n].shift();
+      if (q) picked.push(q);
+    }
+  }
+  picked.forEach(q => seen.add(q[0]));
+  store.set([...seen]);
+  return shuffle(picked);
+}
+
+/* ---------- UI ---------- */
+const $ = id => document.getElementById(id);
+let round = [], answers = [], orders = [], index = 0, locked = false, summary = "";
+
+function show(section){
+  for (const id of ["intro","quiz","result"]) $(id).hidden = id !== section;
+}
+
+function start(){
+  round = drawRound(); answers = []; index = 0;
+  // Mixed order; answers like "Something else" stay last.
+  orders = round.map(q => {
+    const all = q[3].map((_, i) => i);
+    return [...shuffle(all.filter(i => q[3][i].length > 1)), ...all.filter(i => q[3][i].length === 1)];
+  });
+  show("quiz"); renderQuestion();
+}
+
+function renderQuestion(){
+  const q = round[index];
+  locked = false;
+  $("progress").value = index;
+  $("count").textContent = `${index + 1} of ${PER_ROUND}`;
+  $("qtext").textContent = q[2];
+  $("back").hidden = index === 0;
+  $("options").replaceChildren(...orders[index].map(opt => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(answers[index] === opt));
+    b.textContent = q[3][opt][0];
+    b.addEventListener("click", () => choose(opt, b));
+    return b;
+  }));
+  $("qtext").focus({preventScroll:true});
+  window.scrollTo(0, 0);
+}
+
+function choose(opt, button){
+  if (locked) return;
+  locked = true;
+  answers[index] = opt;
+  button.setAttribute("aria-pressed", "true");
+  const at = index, current = round;
+  setTimeout(() => {
+    if (round !== current || index !== at) return; // went back meanwhile
+    if (++index < PER_ROUND) renderQuestion(); else finish();
+  }, 200);
+}
+
+const typicalFor = a => a <= 13 ? "children" : a <= 19 ? "teenagers" : a <= 29 ? "people in their 20s" : a <= 45 ? "people in their 30s and 40s" : "people over 45";
+
+// The 4 answers that move the guess the most: compare the result with and without each one.
+function showReasons(picks, result){
+  const top = picks
+    .filter(({q, i}) => q[3][i].length > 1)
+    .map(x => ({...x, pull: result.mean - estimate(picks.filter(y => y !== x)).mean}))
+    .sort((a, b) => Math.abs(b.pull) - Math.abs(a.pull))
+    .slice(0, 4);
+  const line = (text, className = "") => { const p = document.createElement("p"); p.textContent = text; p.className = className; return p; };
+  $("top").replaceChildren(...top.map(({q, i, pull}) => {
+    const [answer, age] = q[3][i];
+    const years = Math.round(Math.abs(pull));
+    const effect = years < 1 ? "It changed our guess only a little."
+      : `It made our guess about ${years} ${years === 1 ? "year" : "years"} ${pull > 0 ? "older" : "younger"}.`;
+    const item = document.createElement("li");
+    const chosen = line(`You chose: ${answer}`);
+    chosen.style.fontWeight = "700";
+    item.append(line(q[2], "small"), chosen,
+      line(`${WHY[q[0]]} We think this answer is typical for ${typicalFor(age)}. ${effect}`));
+    return item;
+  }));
+  $("reasons").hidden = top.length === 0;
+}
+
+function finish(){
+  const picks = round.map((q, n) => ({q, i: answers[n]}));
+  const r = estimate(picks);
+  showReasons(picks, r);
+  show("result");
+  $("age").textContent = r.age;
+  $("range").textContent = `Maybe between ${r.low} and ${r.high}.`;
+  summary = `The quiz thinks I am ${r.age}.`;
+  $("copied").textContent = "";
+  $("rtitle").focus({preventScroll:true});
+  window.scrollTo(0, 0);
+}
+
+$("start").addEventListener("click", start);
+$("again").addEventListener("click", start);
+$("back").addEventListener("click", () => { if (index > 0){ index--; renderQuestion(); } });
+$("copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(summary); $("copied").textContent = "Copied."; }
+  catch { $("copied").textContent = summary; }
+});
+document.addEventListener("keydown", e => {
+  if ($("quiz").hidden || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  $("options").children[Number(e.key) - 1]?.click();
+});
+</script>
+</body>
+</html>
