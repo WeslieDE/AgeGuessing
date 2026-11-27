@@ -65,6 +65,10 @@ label{display:block}
 .flower{position:relative;width:220px;height:220px;justify-self:center;background:radial-gradient(circle,#ffb02e 0 24px,transparent 25px)}
 #options .petal{position:absolute;left:78px;top:78px;width:64px;height:64px;padding:0;border-radius:50%;transform:rotate(var(--turn)) translateY(-66px);border-color:var(--blue)}
 #options .tap{justify-self:center;text-align:center;width:150px;height:150px;border-radius:50%;font-size:2rem;font-weight:800;user-select:none;touch-action:manipulation}
+#options.multi button[data-option]::before{content:"☐";margin-right:10px}
+#options.multi button[data-option][aria-pressed="true"]::before{content:"☑"}
+#options.multi .main-button{text-align:center}
+#options.multi .main-button:disabled{background:var(--blue)}
 #copy{display:block;width:100%;margin-top:10px}
 footer{max-width:520px;text-align:center}
 </style>
@@ -73,12 +77,12 @@ footer{max-width:520px;text-align:center}
 <main>
   <section id="intro">
     <h1>Can we guess your age?</h1>
-    <p style="margin-bottom:24px">Answer 10 short questions and do 3 small tasks.</p>
+    <p style="margin-bottom:24px">Answer 12 short questions and do 2 small tasks.</p>
     <button class="main-button" id="start">Start</button>
   </section>
 
   <section id="quiz" hidden>
-    <progress id="progress" max="13" value="0" aria-label="Steps done"></progress>
+    <progress id="progress" max="14" value="0" aria-label="Steps done"></progress>
     <p class="small" id="count"></p>
     <h1 id="qtext" tabindex="-1"></h1>
     <div id="options"></div>
@@ -401,9 +405,46 @@ Object.assign(WHY, {
  "312": "Adults often miss children's games. Children often want to join the adult talk."
 });
 
+/* ---------- Questions with more than one answer: 2 of 15 per round ---------- */
+const MULTI = [
+ [401, "multi", "Which things do you have in your room or home?", [["Soft toys", 16, 18], ["House plants", 42, 18], ["Posters", 17, 11], ["Framed photos", 55, 18], ["Fairy lights", 20, 11], ["A box of cables", 40, 14], ["Art supplies", 18, 18], ["Candles", 38, 18]]],
+ [402, "multi", "What did you do in the last week?", [["Drew or colored something", 12, 14], ["Cooked a full meal", 40, 18], ["Played a video game", 18, 14], ["Washed clothes", 40, 18], ["Watched short videos", 19, 14], ["Read something on paper", 52, 22], ["Made something with my hands", 25, 25], ["Paid a bill", 45, 18]]],
+ [403, "multi", "What is in your bag or pockets?", [["Keys", 42, 18], ["Headphones", 22, 13], ["A snack", 11, 12], ["Tissues", 55, 20], ["A small toy or fidget", 12, 11], ["Cards or money", 38, 18], ["Lip balm", 22, 14], ["Medicine", 58, 18]]],
+ [404, "multi", "Which of these make a day good?", [["Good sleep", 42, 20], ["Time with friends", 18, 14], ["A quiet house", 48, 18], ["A new game or video", 14, 11], ["Nice weather", 50, 22], ["A favorite food", 13, 16], ["Finishing my to-do list", 42, 15], ["Time for my hobby", 28, 28]]],
+ [405, "multi", "Which foods do you like?", [["Olives", 45, 18], ["Chicken nuggets", 10, 11], ["Soup", 55, 20], ["Sushi", 27, 12], ["Pancakes", 14, 18], ["Dark chocolate", 45, 17], ["Spicy noodles", 19, 11], ["Mushrooms", 46, 20]]],
+ [406, "multi", "Which sounds do you enjoy?", [["Birds in the morning", 55, 20], ["Rain on the window", 28, 28], ["Loud music", 19, 12], ["Bubble wrap popping", 12, 14], ["Silence", 48, 20], ["A busy café", 30, 14], ["A cat purring", 28, 30], ["Video game sounds", 15, 11]]],
+ [407, "multi", "Which have you done this month?", [["Sent a voice message", 21, 14], ["Written on paper", 40, 30], ["Booked a doctor visit", 45, 18], ["Asked someone if I may do something", 10, 9], ["Taken a nap", 45, 28], ["Taken many pictures of myself", 18, 10], ["Fixed something at home", 48, 17], ["Stayed up past 2 am", 21, 10]]],
+ [408, "multi", "What would you take on a short trip?", [["A favorite soft thing", 12, 18], ["A phone charger", 28, 16], ["A book", 45, 25], ["Medicine", 58, 18], ["Headphones", 22, 14], ["Snacks", 15, 17], ["A camera", 45, 22], ["A neck pillow", 40, 18]]],
+ [409, "multi", "Which things do you find boring?", [["Talking about the weather", 16, 12], ["Video game news", 52, 18], ["Long walks", 14, 11], ["Cartoons", 55, 18], ["Gardening", 17, 13], ["Short videos", 55, 18], ["Shopping for furniture", 13, 12], ["Loud parties", 48, 18]]],
+ [410, "multi", "Which would you like to learn?", [["Cooking", 24, 16], ["Drawing", 14, 16], ["Driving", 16, 6], ["A new language", 30, 20], ["Growing vegetables", 50, 18], ["Making videos", 13, 9], ["Repairing things", 38, 18], ["Playing an instrument", 22, 22]]],
+ [411, "multi", "Which do you worry about sometimes?", [["Tests", 16, 7], ["Money", 34, 17], ["My health", 58, 18], ["Friends liking me", 15, 11], ["The dark", 8, 8], ["Work", 38, 14], ["My family", 45, 25], ["My phone battery", 20, 14]]],
+ [412, "multi", "Which animals would you like to meet?", [["A panda", 14, 18], ["A wild bird", 55, 20], ["A dog", 30, 35], ["A shark", 10, 10], ["A frog", 19, 12], ["A horse", 25, 25], ["A hedgehog", 38, 22], ["A capybara", 17, 10]]],
+ [413, "multi", "What do you do while you wait?", [["Look at my phone", 24, 17], ["Look around", 52, 20], ["Talk to people nearby", 62, 18], ["Play a game", 13, 12], ["Listen to music", 22, 14], ["Hum or move around", 10, 12], ["Think about my tasks", 42, 16], ["Read signs and posters", 40, 28]]],
+ [414, "multi", "Which words describe your free days?", [["Busy", 40, 18], ["Lazy", 19, 13], ["Creative", 18, 20], ["Calm", 55, 20], ["Loud", 10, 10], ["Planned", 46, 20], ["Online", 21, 12], ["Outside", 35, 30]]],
+ [415, "multi", "Which of these feel nice to you?", [["A warm bath", 45, 28], ["Jumping on something soft", 9, 9], ["Clean bed sheets", 42, 18], ["Popping bubble wrap", 13, 16], ["A hot drink", 45, 20], ["Spinning on a chair", 11, 10], ["A tidy room", 50, 20], ["A big hoodie", 19, 10]]]
+];
+Object.assign(WHY, {
+ "401": "The things around us often change as we grow.",
+ "402": "What fills a week often depends on the stage of life.",
+ "403": "What we carry often shows what our days look like.",
+ "404": "What makes a day good often changes during life.",
+ "405": "Taste often changes as we grow up.",
+ "406": "The sounds we enjoy can change over the years.",
+ "407": "Daily duties are different at different ages.",
+ "408": "How we pack often changes with practice and needs.",
+ "409": "What feels boring often changes with age.",
+ "410": "Wishes to learn something often follow the stage of life.",
+ "411": "Worries often change as life changes.",
+ "412": "Favorite animals can change over time.",
+ "413": "Habits for waiting often differ between ages.",
+ "414": "Free days often look different at different ages.",
+ "415": "The little things we enjoy often change over the years."
+});
+const MIN_PICKS = 2;
+
 /* ---------- Guessing: Bayesian estimate over ages 7..80 ---------- */
 const AGES = Array.from({length:74}, (_,i) => i + 7);
-const PER_ROUND = 10, TASKS_PER_ROUND = 3;
+const PER_ROUND = 10, MULTI_PER_ROUND = 2, TASKS_PER_ROUND = 2;
 
 const affinity = (opt, age) => {
   if (opt.length === 1) return 0.3;
@@ -417,7 +458,8 @@ const prior = a => Math.exp(-0.5 * ((a - 32) / 26) ** 2);
 function estimate(picks){
   let p = AGES.map(prior);
   for (const {q, i} of picks){
-    if (q[3][i].length > 1) p = p.map((v, k) => v * likelihood(q, i, AGES[k]) ** (q[4] ?? 1));
+    const chosen = [].concat(i).filter(n => q[3][n].length > 1);
+    for (const n of chosen) p = p.map((v, k) => v * likelihood(q, n, AGES[k]) ** ((q[4] ?? 1) / chosen.length));
   }
   const sum = p.reduce((a, b) => a + b, 0);
   const quantile = t => { let c = 0; for (let k = 0; k < p.length; k++){ c += p[k] / sum; if (c >= t) return AGES[k]; } return AGES.at(-1); };
@@ -477,7 +519,10 @@ function show(section){
 
 function start(){
   round = drawRound(); answers = []; index = 0;
-  rotate("agequiz.tasks", TASKS, TASKS_PER_ROUND).forEach((task, n) => round.splice(3 + n * 4, 0, task)); // steps 4, 8 and 12
+  const multi = rotate("agequiz.multi", MULTI, MULTI_PER_ROUND);
+  const tasks = rotate("agequiz.tasks", TASKS, TASKS_PER_ROUND);
+  // steps 3 and 9 are multiple choice, steps 6 and 12 are tasks
+  [[2, multi[0]], [5, tasks[0]], [8, multi[1]], [11, tasks[1]]].forEach(([at, step]) => round.splice(at, 0, step));
   // Mixed order; answers like "Something else" stay last.
   orders = round.map(q => {
     if (q[1] === "task") return [];
@@ -498,22 +543,41 @@ function renderQuestion(){
   $("options").replaceChildren(...orders[index].map(opt => {
     const b = document.createElement("button");
     b.type = "button";
-    b.setAttribute("aria-pressed", String(answers[index] === opt));
+    b.setAttribute("aria-pressed", String([].concat(answers[index] ?? []).includes(opt)));
+    b.dataset.option = opt;
     b.textContent = q[3][opt][0];
-    b.addEventListener("click", () => choose(opt, b));
+    b.addEventListener("click", () => {
+      if (q[1] !== "multi") return choose(opt, b);
+      b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true"));
+      b.dispatchEvent(new Event("toggled", {bubbles:true}));
+    });
     return b;
   }));
   $("options").classList.toggle("task", q[1] === "task");
+  $("options").classList.toggle("multi", q[1] === "multi");
   if (q[1] === "task") renderTask(q, $("options"), choose);
+  if (q[1] === "multi") renderMulti($("options"));
   $("qtext").focus({preventScroll:true});
   window.scrollTo(0, 0);
+}
+
+function renderMulti(box){
+  const chosen = () => [...box.querySelectorAll('[data-option][aria-pressed="true"]')].map(b => Number(b.dataset.option));
+  const hint = el("p", {className:"small", textContent:`Choose ${MIN_PICKS} or more.`});
+  const done = el("button", {type:"button", className:"main-button", textContent:"Done"});
+  const update = () => { done.disabled = chosen().length < MIN_PICKS; };
+  done.addEventListener("click", () => choose(chosen(), done));
+  box.prepend(hint);
+  box.append(done);
+  box.querySelectorAll("[data-option]").forEach(b => b.addEventListener("toggled", update));
+  update();
 }
 
 function choose(opt, button){
   if (locked) return;
   locked = true;
   answers[index] = opt;
-  button.setAttribute("aria-pressed", "true");
+  if (!Array.isArray(opt)) button.setAttribute("aria-pressed", "true");
   const at = index, current = round;
   setTimeout(() => {
     if (round !== current || index !== at) return; // went back meanwhile
@@ -526,13 +590,14 @@ const typicalFor = a => a <= 13 ? "children" : a <= 19 ? "teenagers" : a <= 29 ?
 // The 4 answers that move the guess the most: compare the result with and without each one.
 function showReasons(picks, result){
   const top = picks
-    .filter(({q, i}) => q[3][i].length > 1)
+    .filter(({q, i}) => [].concat(i).some(n => q[3][n].length > 1))
     .map(x => ({...x, pull: result.mean - estimate(picks.filter(y => y !== x)).mean}))
     .sort((a, b) => Math.abs(b.pull) - Math.abs(a.pull))
     .slice(0, 4);
   const line = (text, className = "") => { const p = document.createElement("p"); p.textContent = text; p.className = className; return p; };
   $("top").replaceChildren(...top.map(({q, i, pull}) => {
-    const [answer, age] = q[3][i];
+    const many = Array.isArray(i);
+    const [answer, age] = many ? [i.map(n => q[3][n][0]).join(", ")] : q[3][i];
     const isTask = q[1] === "task";
     const years = Math.round(Math.abs(pull));
     const effect = years < 1 ? "It changed our guess only a little."
@@ -541,7 +606,7 @@ function showReasons(picks, result){
     const chosen = line(`${isTask ? "You made" : "You chose"}: ${answer}`);
     chosen.style.fontWeight = "700";
     item.append(line(q[2], "small"), chosen,
-      line(`${WHY[q[0]]} We think this answer is typical for ${typicalFor(age)}. ${effect}`));
+      line(`${WHY[q[0]]} ${many ? "" : `We think this answer is typical for ${typicalFor(age)}. `}${effect}`));
     return item;
   }));
   $("reasons").hidden = top.length === 0;
@@ -569,7 +634,7 @@ $("copy").addEventListener("click", async () => {
 });
 document.addEventListener("keydown", e => {
   if ($("quiz").hidden || round[index]?.[1] === "task" || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
-  $("options").children[Number(e.key) - 1]?.click();
+  $("options").querySelectorAll("button")[Number(e.key) - 1]?.click();
 });
 </script>
 </body>
