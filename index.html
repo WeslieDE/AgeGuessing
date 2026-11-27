@@ -41,6 +41,30 @@ h2{font-size:1.25rem;margin-bottom:8px}
 #top{list-style:none;margin-bottom:24px}
 #top li{padding:14px 0;border-top:2px solid var(--line)}
 #top p+p{margin-top:4px}
+#options.task .main-button{margin-top:8px}
+#options .link{margin-top:0;text-align:center}
+#options .main-button{text-align:center}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#options .grid button{text-align:center;min-height:76px;padding:6px;font-size:2rem;overflow-wrap:anywhere}
+#options .grid.icon button{font-size:1.5rem;white-space:nowrap}
+.grid.color{grid-template-columns:repeat(4,minmax(0,1fr))}
+#options .grid.color button:hover,#options .grid.fill button:hover{border-color:var(--text)}
+.grid.sky{background:linear-gradient(#bfe4ff 75%,#9fd49a 75%);padding:10px;border-radius:12px}
+#options .grid.sky button{background:none;border:2px dashed var(--blue)}
+#options .grid.sky button:hover{background:#ffe27a}
+input[type=range]{width:100%;height:44px;accent-color:var(--blue)}
+label{display:block}
+.ends{display:flex;justify-content:space-between}
+.preview{min-height:110px;display:grid;place-items:center;text-align:center;line-height:1.3}
+.clock{width:min(100%,260px);justify-self:center;touch-action:none;cursor:grab;user-select:none}
+.clock .face{fill:var(--hover);stroke:var(--blue);stroke-width:4}
+.clock text{font-size:16px;fill:var(--text);text-anchor:middle;dominant-baseline:central}
+.clock line{stroke:var(--text);stroke-linecap:round;stroke-width:8}
+.clock line.minute{stroke:var(--blue);stroke-width:5}
+.clock .pin{fill:var(--text)}
+.flower{position:relative;width:220px;height:220px;justify-self:center;background:radial-gradient(circle,#ffb02e 0 24px,transparent 25px)}
+#options .petal{position:absolute;left:78px;top:78px;width:64px;height:64px;padding:0;border-radius:50%;transform:rotate(var(--turn)) translateY(-66px);border-color:var(--blue)}
+#options .tap{justify-self:center;text-align:center;width:150px;height:150px;border-radius:50%;font-size:2rem;font-weight:800;user-select:none;touch-action:manipulation}
 #copy{display:block;width:100%;margin-top:10px}
 footer{max-width:520px;text-align:center}
 </style>
@@ -49,12 +73,12 @@ footer{max-width:520px;text-align:center}
 <main>
   <section id="intro">
     <h1>Can we guess your age?</h1>
-    <p style="margin-bottom:24px">Answer 10 short questions.</p>
+    <p style="margin-bottom:24px">Answer 10 short questions and do 3 small tasks.</p>
     <button class="main-button" id="start">Start</button>
   </section>
 
   <section id="quiz" hidden>
-    <progress id="progress" max="10" value="0" aria-label="Questions done"></progress>
+    <progress id="progress" max="13" value="0" aria-label="Steps done"></progress>
     <p class="small" id="count"></p>
     <h1 id="qtext" tabindex="-1"></h1>
     <div id="options"></div>
@@ -137,7 +161,20 @@ const BANK = [
  [153,"people","A neighbor you do not know well waves.",[["I stop and talk",62,15],["I wave and walk on",35,17],["I check if they mean me",18,10],["I do not like to wave"]]],
  [154,"people","Which question is the worst?",[["“What do you want to be?”",15,6],["“So what do you do now?”",25,8],["“Can you help me with my phone?”",38,13],["“Do you remember my name?”",59,17],["Any question I did not expect"]]],
  [155,"people","Children are playing loudly near you.",[["I want to play too",10,9],["I put on headphones",23,14],["I smile and think of old times",58,17],["I wonder whose children they are",40,12],["Noise is always hard for me"]]],
- [156,"people","Who helps you choose a movie?",[["A friend",27,22],["A movie review",50,18],["A person who makes videos",15,8],["My child or a younger family member",62,12],["I choose alone"]]]
+ [156,"people","Who helps you choose a movie?",[["A friend",27,22],["A movie review",50,18],["A person who makes videos",15,8],["My child or a younger family member",62,12],["I choose alone"]]],
+ /* Trick questions: players who try to sound young or old tend to pick the opposite. */
+ [301, "trap", "Which would you love to try?", [["Knitting or crochet", 21, 9], ["A big box of building bricks", 38, 13], ["Slime making", 10, 6], ["Bird watching", 52, 20], ["None of these"]]],
+ [302, "trap", "How do you like to hear music best?", [["On a vinyl record", 22, 10], ["With songs a smart speaker picks", 50, 18], ["On the radio", 52, 20], ["Any way is fine"]]],
+ [303, "trap", "Which sentence sounds like you?", [["I am very mature for my age", 13, 5], ["I am just a big kid", 40, 14], ["I am a bit of an old soul", 19, 8], ["None of these"]]],
+ [304, "trap", "How old are you inside?", [["Much older than people think", 12, 6], ["Still like a little kid", 38, 16], ["Like a teenager", 45, 15], ["I never think about it"]]],
+ [305, "trap", "Which would make you feel proud?", [["Having my own door key", 9, 4], ["Having a free day to play", 40, 15], ["Paying for something with my own money", 13, 7], ["Growing a plant", 45, 22], ["Something else"]]],
+ [306, "trap", "Which camera would be the most fun?", [["A camera with film", 22, 9], ["The newest phone camera", 48, 20], ["A toy camera that prints pictures", 16, 10], ["I do not need a camera"]]],
+ [307, "trap", "Which book would you pick up?", [["A coloring book", 36, 16], ["A thick book about money or business", 14, 7], ["A comic book", 24, 18], ["A cooking book", 42, 22], ["None of these"]]],
+ [308, "trap", "It is 9 pm on a free day. What sounds nice?", [["Going to bed early with a warm drink", 26, 11], ["Staying up very, very late", 10, 6], ["Watching one more show", 38, 20], ["It depends"]]],
+ [309, "trap", "Which would you like to carry?", [["A business bag with papers", 9, 6], ["A bag with a cute little charm on it", 23, 10], ["A backpack with many pockets", 38, 22], ["Just my pockets"]]],
+ [310, "trap", "Which job at home sounds fun?", [["Washing the car or the dishes with lots of foam", 9, 5], ["Doing a big puzzle after the chores", 44, 20], ["Making bread from the start", 27, 12], ["No home job is fun"]]],
+ [311, "trap", "Which snack would you choose?", [["A bowl of sweet cereal", 28, 12], ["A cup of “real” coffee like the adults", 12, 6], ["Fruit cut into pieces", 35, 28], ["Cheese and crackers", 45, 20], ["Something else"]]],
+ [312, "trap", "Which party game would you join?", [["Hide and seek", 28, 12], ["Sitting and talking with the grown-ups", 11, 6], ["Cards or board games", 40, 24], ["I would rather watch"]]]
 ];
 
 /* One reason per question, shown with the result. */
@@ -200,9 +237,175 @@ const WHY = {
  "156": "Whose advice we trust often changes with age."
 };
 
+/* ---------- Small visual tasks: 3 of 15 per round ----------
+   [id, "task", question, outcomes, weight, kind, settings]
+   outcomes work like answers above. The weight is low: taste and hand skill say little about age. */
+const SKIP = ["I skipped this"];
+const pick = (id, text, items, view) => [id, "task", text, [...items.map(i => i.slice(1)), SKIP], .5, "pick", {view, icons: items.map(i => i[0])}];
+const TASKS = [
+ pick(201,"Pick a color.",[["#e5484d","Red",20,18],["#f5871f","Orange",14,14],["#ffd02f","Yellow",11,13],["#3fa45b","Green",45,20],["#2f7fd8","Blue",40,22],["#8e5bd6","Purple",18,13],["#f06fae","Pink",12,13],["#222222","Black",23,10]],"color"),
+ [202,"task","Move the hands so the clock shows an afternoon time.",[["3 o'clock",30,25],["a time with full hours",13,12],["a time with half or quarter hours",45,20],["an exact time with odd minutes",32,16],["a time outside the afternoon",10,9],SKIP],.5,"clock"],
+ [203,"task","Make the text a size that is nice to read.",[["small text",21,10],["normal text",32,16],["large text",54,17],["very large text",66,15],SKIP],.7,"slider",{min:12,max:34,start:18,low:"small",high:"big",preview:"text",cuts:[16,20,26]}],
+ pick(204,"Which picture means “call someone”?",[["☎️","The old telephone",46,22],["📞","The phone handle",40,20],["📱","The smartphone",13,9],["📹","The video camera",12,10]],"icon"),
+ pick(205,"Which picture means “save”?",[["💾","The floppy disk",42,17],["📥","The box with an arrow",30,18],["☁️","The cloud",16,10],["❤️","The heart",14,11],["🔖","The bookmark",24,12]],"icon"),
+ pick(206,"Choose a sticker.",[["🦖","Dinosaur",9,10],["🦄","Unicorn",11,12],["🐱","Cat",24,18],["🌻","Sunflower",55,20],["💀","Skull",18,8],["⭐","Star",35,28]],"icon"),
+ [207,"task","Color the flower. Tap a petal to change it.",[["a flower in one color",45,22],["a flower in two colors",35,18],["a flower in many colors",11,12],["an empty flower",25,20],SKIP],.5,"flower"],
+ [208,"task","Tap the big button as often as you like.",[["1 or 2 taps",45,20],["3 to 9 taps",32,20],["10 to 24 taps",16,11],["25 taps or more",10,9],SKIP],.5,"tap"],
+ pick(209,"Pick a shape.",[["●","Circle",35,25],["■","Square",45,20],["▲","Triangle",25,18],["★","Star",11,12],["♥","Heart",18,16],["🌀","Spiral",22,14]],"shape"),
+ pick(210,"Pick a number.",[["1","1",9,10],["3","3",25,20],["7","7",32,18],["8","8",45,25],["13","13",20,9],["67","67",13,3],["100","100",8,8],["42","42",35,10]],"icon"),
+ pick(211,"Where should the sun go in your picture?",[["↖","Top left corner",14,14],["⬆","Top middle",32,22],["↗","Top right corner",15,15],["⬅","Low on the left",45,22],["⏺","In the middle",20,18],["➡","Low on the right",45,22]],"sky"),
+ pick(212,"Where would you sit in a café?",[["🪟","By the window",40,25],["🧱","In a quiet corner",30,18],["🚪","Near the door",58,20],["🛋️","On the soft sofa",20,14],["🎠","Next to the play area",8,8]],"icon"),
+ pick(213,"Which sky do you like most?",[["linear-gradient(#6fc3ff,#dff3ff)","Sunny blue sky",12,15],["linear-gradient(#5b4b9a,#ff9a62)","Evening sunset",36,20],["linear-gradient(#0b1030,#3a3f78)","Night sky",20,12],["linear-gradient(#7d8b99,#c5ced6)","Grey rain sky",38,20],["linear-gradient(#bfe3ff,#ffe3b0)","Early morning",58,18]],"fill"),
+ pick(214,"How should your name look?",[["Sam","Plain letters",35,22],["𝒮𝒶𝓂","Curly writing",55,22],["SAM","BIG LETTERS",11,13],["sam","small letters",20,9],["✨sam✨","With sparkles",15,10]],"icon"),
+ [215,"task","Move the slider to the face that shows your usual morning.",[["a very tired morning",20,10],["a slow morning",32,18],["an okay morning",45,22],["a very happy morning",55,28],SKIP],.5,"slider",{min:0,max:100,start:50,low:"tired",high:"happy",preview:"face",cuts:[25,50,75]}]
+];
+Object.assign(WHY, {
+ 201:"Favorite colors often change as we grow up.",
+ 202:"People learn and use clocks with hands in different ways.",
+ 203:"Eyes often like bigger text as the years go by.",
+ 204:"The picture for a phone depends on which phones you knew.",
+ 205:"The save sign comes from an old thing that not everyone has seen.",
+ 206:"Favorite pictures often change over the years.",
+ 207:"Ways of coloring often change with age.",
+ 208:"The urge to tap again and again differs between ages.",
+ 209:"Favorite shapes can change over time.",
+ 210:"Some numbers are in fashion with certain age groups.",
+ 211:"Many children draw the sun in a corner.",
+ 212:"What makes a good seat often changes with age.",
+ 213:"The time of day we enjoy often changes with age.",
+ 214:"Writing style often follows what feels normal in your age group.",
+ 215:"Sleep and mornings often change during life."
+});
+const el = (tag, props = {}, ...children) => { const n = Object.assign(document.createElement(tag), props); n.append(...children); return n; };
+
+// Draws one task into the box and calls done(outcomeIndex, button).
+function renderTask(task, box, done){
+  const [, , , outcomes, , kind, set] = task;
+  const finishButton = result => {
+    const b = el("button", {type:"button", className:"main-button", textContent:"Done"});
+    b.addEventListener("click", () => done(result(), b));
+    return b;
+  };
+
+  if (kind === "pick"){
+    const grid = el("div", {className:"grid " + set.view});
+    const order = set.view === "sky" ? set.icons.map((_, i) => i) : shuffle(set.icons.map((_, i) => i));
+    for (const i of order){
+      const b = el("button", {type:"button", title:outcomes[i][0]});
+      b.setAttribute("aria-label", outcomes[i][0]);
+      if (set.view === "color" || set.view === "fill") b.style.background = set.icons[i];
+      else if (set.view !== "sky") b.textContent = set.icons[i];
+      b.addEventListener("click", () => done(i, b));
+      grid.append(b);
+    }
+    box.append(grid);
+  }
+
+  if (kind === "slider"){
+    const preview = el("div", {className:"preview"});
+    const input = el("input", {type:"range", min:set.min, max:set.max, value:set.start});
+    input.setAttribute("aria-label", `from ${set.low} to ${set.high}`);
+    const draw = () => {
+      const v = Number(input.value);
+      if (set.preview === "text"){ preview.textContent = "The cat sleeps in the sun."; preview.style.fontSize = v + "px"; }
+      else { preview.textContent = ["😫","😪","😐","🙂","😄"][Math.min(4, Math.floor(v / 20))]; preview.style.fontSize = "64px"; }
+    };
+    input.addEventListener("input", draw); draw();
+    box.append(preview, input, el("p", {className:"ends small"}, el("span", {textContent:set.low}), el("span", {textContent:set.high})),
+      finishButton(() => set.cuts.filter(c => Number(input.value) > c).length));
+  }
+
+  if (kind === "clock"){
+    let hour = 12, minute = 0;
+    const NS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "-110 -110 220 220"); svg.setAttribute("class", "clock"); svg.setAttribute("aria-hidden", "true");
+    const add = (tag, attrs, text = "") => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); n.textContent = text; svg.append(n); return n; };
+    add("circle", {r:104, class:"face"});
+    for (let n = 1; n <= 12; n++) add("text", {x:Math.sin(n * Math.PI / 6) * 84, y:-Math.cos(n * Math.PI / 6) * 84}, n);
+    const hHand = add("line", {class:"hour"}), mHand = add("line", {class:"minute"});
+    add("circle", {r:6, class:"pin"});
+    const slider = (label, min, max, value) => {
+      const input = el("input", {type:"range", min, max, value});
+      box.append(el("label", {className:"small"}, label, input));
+      return input;
+    };
+    box.append(svg);
+    const hInput = slider("Short hand", 1, 12, 12), mInput = slider("Long hand", 0, 59, 0);
+    const point = (line, turn, length) => { line.setAttribute("x2", Math.sin(turn * 2 * Math.PI) * length); line.setAttribute("y2", -Math.cos(turn * 2 * Math.PI) * length); };
+    const draw = () => { hInput.value = hour; mInput.value = minute; point(hHand, (hour % 12 + minute / 60) / 12, 50); point(mHand, minute / 60, 72); };
+    hInput.addEventListener("input", () => { hour = Number(hInput.value); draw(); });
+    mInput.addEventListener("input", () => { minute = Number(mInput.value); draw(); });
+    // Drag a hand: touch near the middle moves the short one, further out the long one.
+    let dragging = null;
+    const move = e => {
+      const r = svg.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
+      dragging ??= Math.hypot(x, y) / (r.width / 2) < .55 ? "hour" : "minute";
+      const turn = (Math.atan2(x, -y) / (2 * Math.PI) + 1) % 1;
+      if (dragging === "minute") minute = Math.round(turn * 60) % 60;
+      else hour = Math.round(turn * 12 - minute / 60 + 12) % 12 || 12;
+      draw();
+    };
+    svg.addEventListener("pointerdown", e => { dragging = null; svg.setPointerCapture(e.pointerId); move(e); });
+    svg.addEventListener("pointermove", e => { if (svg.hasPointerCapture(e.pointerId)) move(e); });
+    draw();
+    box.append(finishButton(() => {
+      const afternoon = hour === 12 ? true : hour <= 5 || (hour === 6 && minute === 0);
+      if (!afternoon) return 4;
+      if (hour === 3 && minute === 0) return 0;
+      if (minute === 0) return 1;
+      return minute % 15 === 0 ? 2 : 3;
+    }));
+  }
+
+  if (kind === "flower"){
+    const colors = ["#fff","#e5484d","#ffd02f","#3fa45b","#2f7fd8","#8e5bd6"];
+    const state = [0,0,0,0,0,0];
+    const flower = el("div", {className:"flower"});
+    state.forEach((_, i) => {
+      const petal = el("button", {type:"button", className:"petal"});
+      petal.setAttribute("aria-label", `Petal ${i + 1}`);
+      petal.style.setProperty("--turn", i * 60 + "deg");
+      petal.addEventListener("click", () => { state[i] = (state[i] + 1) % colors.length; petal.style.background = colors[state[i]]; });
+      flower.append(petal);
+    });
+    box.append(flower, finishButton(() => {
+      const used = new Set(state.filter(Boolean)).size;
+      return used === 0 ? 3 : used === 1 ? 0 : used === 2 ? 1 : 2;
+    }));
+  }
+
+  if (kind === "tap"){
+    let taps = 0;
+    const big = el("button", {type:"button", className:"tap", textContent:"Tap"});
+    big.addEventListener("click", () => { taps++; big.textContent = taps; });
+    box.append(big, finishButton(() => taps === 0 ? 4 : taps <= 2 ? 0 : taps <= 9 ? 1 : taps <= 24 ? 2 : 3));
+  }
+
+  const skip = el("button", {type:"button", className:"link", textContent:"Skip this"});
+  skip.addEventListener("click", () => done(outcomes.length - 1, skip));
+  box.append(skip);
+}
+
+Object.assign(WHY, {
+ "301": "Some “old” hobbies are popular with young people now, and some “kid” toys are made for adults.",
+ "302": "Records sound old, but many young people enjoy them now.",
+ "303": "Wanting to sound grown up is often something children do. Adults often joke that they are not.",
+ "304": "Children often feel older than they are. Adults often feel younger.",
+ "305": "Things that adults find boring can feel very special to children.",
+ "306": "Old kinds of cameras are in fashion with young people again.",
+ "307": "Many coloring books and picture puzzles are made for adults.",
+ "308": "Many young adults enjoy early nights, and children often want to stay up.",
+ "309": "Serious things often look exciting to children. Cute things are popular with many adults.",
+ "310": "Jobs that feel like a chore to adults can be fun for children.",
+ "311": "Many adults like the food they had as children, and children like to try “grown-up” food.",
+ "312": "Adults often miss children's games. Children often want to join the adult talk."
+});
+
 /* ---------- Guessing: Bayesian estimate over ages 7..80 ---------- */
 const AGES = Array.from({length:74}, (_,i) => i + 7);
-const PER_ROUND = 10;
+const PER_ROUND = 10, TASKS_PER_ROUND = 3;
 
 const affinity = (opt, age) => {
   if (opt.length === 1) return 0.3;
@@ -216,7 +419,7 @@ const prior = a => Math.exp(-0.5 * ((a - 32) / 26) ** 2);
 function estimate(picks){
   let p = AGES.map(prior);
   for (const {q, i} of picks){
-    if (q[3][i].length > 1) p = p.map((v, k) => v * likelihood(q, i, AGES[k]));
+    if (q[3][i].length > 1) p = p.map((v, k) => v * likelihood(q, i, AGES[k]) ** (q[4] ?? 1));
   }
   const sum = p.reduce((a, b) => a + b, 0);
   const quantile = t => { let c = 0; for (let k = 0; k < p.length; k++){ c += p[k] / sum; if (c >= t) return AGES[k]; } return AGES.at(-1); };
@@ -233,21 +436,37 @@ const shuffle = a => { for (let i = a.length - 1; i > 0; i--){ const j = Math.fl
 
 function drawRound(){
   let seen = new Set(store.get());
-  let fresh = BANK.filter(q => !seen.has(q[0]));
+  const normal = BANK.filter(q => q[1] !== "trap");
+  const traps = rotate("agequiz.traps", BANK.filter(q => q[1] === "trap"), Math.random() < .5 ? 1 : 2);
+  const wanted = PER_ROUND - traps.length;
+  let fresh = normal.filter(q => !seen.has(q[0]));
   let picked = [];
-  if (fresh.length < PER_ROUND){ picked = fresh; seen = new Set(fresh.map(q => q[0])); fresh = BANK.filter(q => !seen.has(q[0])); }
+  if (fresh.length < wanted){ picked = fresh; seen = new Set(fresh.map(q => q[0])); fresh = normal.filter(q => !seen.has(q[0])); }
   const groups = {};
   for (const q of shuffle(fresh)) (groups[q[1]] ??= []).push(q);
   const names = shuffle(Object.keys(groups));
-  while (picked.length < PER_ROUND){
+  while (picked.length < wanted){
     for (const n of names){
-      const q = picked.length < PER_ROUND && groups[n].shift();
+      const q = picked.length < wanted && groups[n].shift();
       if (q) picked.push(q);
     }
   }
   picked.forEach(q => seen.add(q[0]));
   store.set([...seen]);
-  return shuffle(picked);
+  return shuffle([...picked, ...traps]);
+}
+
+// Takes "count" items that were not seen lately, using its own memory.
+function rotate(key, pool, count){
+  let seen = [];
+  try { const v = JSON.parse(localStorage.getItem(key)); if (Array.isArray(v)) seen = v; } catch { /* start fresh */ }
+  let picked = shuffle(pool.filter(t => !seen.includes(t[0]))).slice(0, count);
+  if (picked.length < count){
+    seen = [];
+    picked = picked.concat(shuffle(pool.filter(t => !picked.includes(t)))).slice(0, count);
+  }
+  try { localStorage.setItem(key, JSON.stringify([...seen, ...picked.map(t => t[0])])); } catch { /* private mode */ }
+  return picked;
 }
 
 /* ---------- UI ---------- */
@@ -260,8 +479,10 @@ function show(section){
 
 function start(){
   round = drawRound(); answers = []; index = 0;
+  rotate("agequiz.tasks", TASKS, TASKS_PER_ROUND).forEach((task, n) => round.splice(3 + n * 4, 0, task)); // steps 4, 8 and 12
   // Mixed order; answers like "Something else" stay last.
   orders = round.map(q => {
+    if (q[1] === "task") return [];
     const all = q[3].map((_, i) => i);
     return [...shuffle(all.filter(i => q[3][i].length > 1)), ...all.filter(i => q[3][i].length === 1)];
   });
@@ -272,7 +493,8 @@ function renderQuestion(){
   const q = round[index];
   locked = false;
   $("progress").value = index;
-  $("count").textContent = `${index + 1} of ${PER_ROUND}`;
+  $("progress").max = round.length;
+  $("count").textContent = `${index + 1} of ${round.length}`;
   $("qtext").textContent = q[2];
   $("back").hidden = index === 0;
   $("options").replaceChildren(...orders[index].map(opt => {
@@ -283,6 +505,8 @@ function renderQuestion(){
     b.addEventListener("click", () => choose(opt, b));
     return b;
   }));
+  $("options").classList.toggle("task", q[1] === "task");
+  if (q[1] === "task") renderTask(q, $("options"), choose);
   $("qtext").focus({preventScroll:true});
   window.scrollTo(0, 0);
 }
@@ -295,7 +519,7 @@ function choose(opt, button){
   const at = index, current = round;
   setTimeout(() => {
     if (round !== current || index !== at) return; // went back meanwhile
-    if (++index < PER_ROUND) renderQuestion(); else finish();
+    if (++index < round.length) renderQuestion(); else finish();
   }, 200);
 }
 
@@ -311,11 +535,12 @@ function showReasons(picks, result){
   const line = (text, className = "") => { const p = document.createElement("p"); p.textContent = text; p.className = className; return p; };
   $("top").replaceChildren(...top.map(({q, i, pull}) => {
     const [answer, age] = q[3][i];
+    const isTask = q[1] === "task";
     const years = Math.round(Math.abs(pull));
     const effect = years < 1 ? "It changed our guess only a little."
       : `It made our guess about ${years} ${years === 1 ? "year" : "years"} ${pull > 0 ? "older" : "younger"}.`;
     const item = document.createElement("li");
-    const chosen = line(`You chose: ${answer}`);
+    const chosen = line(`${isTask ? "You made" : "You chose"}: ${answer}`);
     chosen.style.fontWeight = "700";
     item.append(line(q[2], "small"), chosen,
       line(`${WHY[q[0]]} We think this answer is typical for ${typicalFor(age)}. ${effect}`));
@@ -345,7 +570,7 @@ $("copy").addEventListener("click", async () => {
   catch { $("copied").textContent = summary; }
 });
 document.addEventListener("keydown", e => {
-  if ($("quiz").hidden || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  if ($("quiz").hidden || round[index]?.[1] === "task" || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
   $("options").children[Number(e.key) - 1]?.click();
 });
 </script>
